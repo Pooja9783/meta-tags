@@ -8,11 +8,12 @@ app.use(cors());
 const PORT = 5000; // Change as needed
 
 // Hardcoded token
-const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjIxNDc0ODM2NDYiLCJuYmYiOjE3Mzg0ODYwNTMsImV4cCI6MTczOTA5MDg1MywiaWF0IjoxNzM4NDg2MDUzfQ.ImbAZZHHvUBD5nhzxNutLbafNkd2MtItHcYyqAMMs7g"
+const token =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjIxNDc0ODM2NDYiLCJuYmYiOjE3Mzg0ODYwNTMsImV4cCI6MTczOTA5MDg1MywiaWF0IjoxNzM4NDg2MDUzfQ.ImbAZZHHvUBD5nhzxNutLbafNkd2MtItHcYyqAMMs7g";
 
 // Function to generate an HTML page with meta tags
 const generateHtml = (news) => {
-  return `
+    return `
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -44,31 +45,35 @@ const generateHtml = (news) => {
 };
 
 // API Route to serve dynamic meta tags
+app.get("/", async (req, res) => {
+    res.send("Hello World");
+});
+
 app.get("/news/:newsId", async (req, res) => {
-  try {
-    const newsId = req.params.newsId;
-    console.log(newsId);
-    
-    const API_URL = `https://www.coffeewebapi.com/api/news/GetNewsToDisplayForUserWithLock/${newsId}/1/40/1`;
+    try {
+        const newsId = req.params.newsId;
+        console.log(newsId);
 
-    // Use hardcoded token in the request
-    const response = await axios.get(API_URL, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+        const API_URL = `https://www.coffeewebapi.com/api/news/GetNewsToDisplayForUserWithLock/${newsId}/1/40/1`;
 
-    if (response.data.returnLst.length > 0) {
-      const news = response.data.returnLst[0];
-      const html = generateHtml(news);
-      res.send(html);
-    } else {
-      res.status(404).send("News not found");
+        // Use hardcoded token in the request
+        const response = await axios.get(API_URL, {
+            headers: {Authorization: `Bearer ${token}`},
+        });
+
+        if (response.data.returnLst.length > 0) {
+            const news = response.data.returnLst[0];
+            const html = generateHtml(news);
+            res.send(html);
+        } else {
+            res.status(404).send("News not found");
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error fetching news data");
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Error fetching news data");
-  }
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
 });
