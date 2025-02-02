@@ -7,6 +7,9 @@ app.use(cors());
 
 const PORT = 5000; // Change as needed
 
+// Hardcoded token
+const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjIxNDc0ODM2NDYiLCJuYmYiOjE3Mzg0ODYwNTMsImV4cCI6MTczOTA5MDg1MywiaWF0IjoxNzM4NDg2MDUzfQ.ImbAZZHHvUBD5nhzxNutLbafNkd2MtItHcYyqAMMs7g"
+
 // Function to generate an HTML page with meta tags
 const generateHtml = (news) => {
   return `
@@ -47,8 +50,8 @@ app.get("/news/:newsId", async (req, res) => {
   try {
     const newsId = req.params.newsId;
     const API_URL = `https://www.coffeewebapi.com/api/news/GetNewsToDisplayForUserWithLock/${newsId}/1/4/1`;
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjIxNDc0ODM2NDYiLCJuYmYiOjE3Mzg0ODYwNTMsImV4cCI6MTczOTA5MDg1MywiaWF0IjoxNzM4NDg2MDUzfQ.ImbAZZHHvUBD5nhzxNutLbafNkd2MtItHcYyqAMMs7g" // Use env variable in production
 
+    // Use hardcoded token in the request
     const response = await axios.get(API_URL, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -61,6 +64,7 @@ app.get("/news/:newsId", async (req, res) => {
       res.status(404).send("News not found");
     }
   } catch (error) {
+    console.error(error);
     res.status(500).send("Error fetching news data");
   }
 });
