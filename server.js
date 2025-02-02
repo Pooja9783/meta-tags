@@ -49,7 +49,7 @@ const generateHtml = (news) => {
 app.get("/news/:newsId", async (req, res) => {
   try {
     const newsId = req.params.newsId;
-    const API_URL = `https://www.coffeewebapi.com/api/news/GetNewsToDisplayForUserWithLock/${newsId}/1/4/1`;
+    const API_URL = `https://www.coffeewebapi.com/api/news/GetNewsToDisplayForUserWithLock/5349/1/4/1`;
 
     // Use hardcoded token in the request
     const response = await axios.get(API_URL, {
