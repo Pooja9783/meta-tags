@@ -34,9 +34,7 @@ const generateHtml = (news) => {
         <meta name="twitter:description" content="${news.shortDescription}">
         <meta name="twitter:image" content="${news.image}">
 
-        <script>
-          window.location.href = "https://yourfrontend.com/news/${news.id}";
-        </script>
+    
     </head>
     <body>
         <p>Redirecting...</p>
@@ -49,7 +47,9 @@ const generateHtml = (news) => {
 app.get("/news/:newsId", async (req, res) => {
   try {
     const newsId = req.params.newsId;
-    const API_URL = `https://www.coffeewebapi.com/api/news/GetNewsToDisplayForUserWithLock/5349/1/4/1`;
+    console.log(newsId);
+    
+    const API_URL = `https://www.coffeewebapi.com/api/news/GetNewsToDisplayForUserWithLock/${newsId}/1/40/1`;
 
     // Use hardcoded token in the request
     const response = await axios.get(API_URL, {
