@@ -42,7 +42,7 @@ app.get("/product/:slug", async (req, res) => {
         <meta property="og:title" content="${product.title}" />
         <meta property="og:description" content="${product.description}" />
         <meta property="og:image" content="${product.image}" />
-        <meta property="og:url" content="https://endearing-chimera-309fae.netlify.app/product/${productSlug}" />
+        <meta property="og:url" content="https://fancy-kitten-bba891.netlify.app/product/${productSlug}" />
         <meta property="og:type" content="product" />
       </head>`);
 
@@ -59,7 +59,7 @@ app.get("*", (req, res) => {
 });
 
 // Start the server
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 5000
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
