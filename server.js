@@ -1,79 +1,65 @@
 const express = require("express");
-const axios = require("axios");
-const cors = require("cors");
+const path = require("path");
+const fs = require("fs");
+const fetch = require("node-fetch");
 
 const app = express();
-app.use(cors());
+app.use(express.static(path.resolve(__dirname, "build")));
 
-const PORT = 5000; // Change as needed
-
-// Hardcoded token
-const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjIxNDc0ODM2NDYiLCJuYmYiOjE3Mzg0ODYwNTMsImV4cCI6MTczOTA5MDg1MywiaWF0IjoxNzM4NDg2MDUzfQ.ImbAZZHHvUBD5nhzxNutLbafNkd2MtItHcYyqAMMs7g";
-
-// Function to generate an HTML page with meta tags
-const generateHtml = (news) => {
-    return `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${news.subject}</title>
-        <meta name="description" content="${news.shortDescription}">
-        
-        <!-- Open Graph Meta Tags (for Facebook, LinkedIn, WhatsApp) -->
-        <meta property="og:title" content="${news.subject}">
-        <meta property="og:description" content="${news.shortDescription}">
-        <meta property="og:image" content="${news.image}">
-        <meta property="og:url" content="https://yourbackend.com/news/${news.id}">
-        <meta property="og:type" content="article">
-
-        <!-- Twitter Meta Tags -->
-        <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="${news.subject}">
-        <meta name="twitter:description" content="${news.shortDescription}">
-        <meta name="twitter:image" content="${news.image}">
-
-    
-    </head>
-    <body>
-        <p>Redirecting...</p>
-    </body>
-    </html>
-  `;
+// Function to create slugs from product titles
+const createSlug = (title) => {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 };
 
-// API Route to serve dynamic meta tags
-app.get("/", async (req, res) => {
-    res.send("Hello World");
+// 🛍️ API Endpoint for Product Page with Slug
+app.get("/product/:slug", async (req, res) => {
+  try {
+    const productSlug = req.params.slug;
+
+    // Fetch all products from FakeStoreAPI
+    const productResponse = await fetch(`https://fakestoreapi.com/products`);
+    if (!productResponse.ok) throw new Error(`Failed to fetch products: ${productResponse.status}`);
+
+    const products = await productResponse.json();
+
+    // Find product by slug
+    const product = products.find((p) => createSlug(p.title) === productSlug);
+    if (!product) return res.status(404).send("Product not found");
+
+    console.log("Fetched Product:", product);
+
+    // Read the main HTML template
+    let indexHTML = fs.readFileSync(path.resolve(__dirname, "build", "index.html"), "utf8");
+
+    // Inject Open Graph meta tags for social media sharing
+    indexHTML = indexHTML
+      .replace("<title>React App</title>", `<title>${product.title}</title>`)
+      .replace(
+        '<meta name="description" content="Web site created using create-react-app" />',
+        `<meta name="description" content="${product.description}" />`
+      )
+      .replace("</head>", `
+        <meta property="og:title" content="${product.title}" />
+        <meta property="og:description" content="${product.description}" />
+        <meta property="og:image" content="${product.image}" />
+        <meta property="og:url" content="https://yourwebsite.com/product/${productSlug}" />
+        <meta property="og:type" content="product" />
+      </head>`);
+
+    res.send(indexHTML);
+  } catch (error) {
+    console.error("Error fetching product:", error);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
-app.get("/news/:newsId", async (req, res) => {
-    try {
-        const newsId = req.params.newsId;
-        console.log(newsId);
-
-        const API_URL = `https://www.coffeewebapi.com/api/news/GetNewsToDisplayForUserWithLock/${newsId}/1/40/1`;
-
-        // Use hardcoded token in the request
-        const response = await axios.get(API_URL, {
-            headers: {Authorization: `Bearer ${token}`},
-        });
-
-        if (response.data.returnLst.length > 0) {
-            const news = response.data.returnLst[0];
-            const html = generateHtml(news);
-            res.send(html);
-        } else {
-            res.status(404).send("News not found");
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Error fetching news data");
-    }
+// Serve React frontend for all other routes
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "build", "index.html"));
 });
 
+// Start the server
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });
