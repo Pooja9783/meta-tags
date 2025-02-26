@@ -42,7 +42,7 @@ app.get("/product/:slug", async (req, res) => {
         <meta property="og:title" content="${product.title}" />
         <meta property="og:description" content="${product.description}" />
         <meta property="og:image" content="${product.image}" />
-        <meta property="og:url" content="https://fancy-kitten-bba891.netlify.app/product/${productSlug}" />
+        <meta property="og:url" content="https://meta-tags-production.up.railway.app/product/${productSlug}" />
         <meta property="og:type" content="product" />
       </head>`);
 
