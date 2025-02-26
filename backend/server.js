@@ -53,6 +53,10 @@ app.get("/product/:slug", async (req, res) => {
   }
 });
 
+app.get("/", (req, res) => {
+  res.send("Server is running!");
+});
+
 // Serve React frontend for all other routes
 app.get("*", (req, res) => {
   res.sendFile(path.resolve(__dirname, "build", "index.html"));
