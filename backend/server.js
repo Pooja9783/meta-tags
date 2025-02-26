@@ -7,11 +7,10 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ✅ Serve the React build folder if it exists
-const buildPath = path.resolve(__dirname, "frontend", "build");
+const buildPath = path.join(__dirname, "../frontend/build");
 if (fs.existsSync(buildPath)) {
   app.use(express.static(buildPath));
-} else {
-  console.warn("⚠️ React build folder not found. Make sure you run 'npm run build' in the frontend.");
+  app.get("*", (req, res) => res.sendFile(path.join(buildPath, "index.html")));
 }
 
 // ✅ Default Route for API Testing
@@ -60,8 +59,12 @@ app.get("/product/:slug", async (req, res) => {
 
 // ✅ Serve React frontend for all other routes
 app.get("*", (req, res) => {
+  if (!fs.existsSync(buildPath)) {
+    return res.status(404).send("⚠️ React frontend build not found.");
+  }
   res.sendFile(path.join(buildPath, "index.html"));
 });
+
 
 // Start the server
 app.listen(PORT, "0.0.0.0", () => {
