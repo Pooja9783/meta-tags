@@ -6,19 +6,13 @@ const fetch = require("node-fetch");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ Serve the React build folder if it exists
+// ✅ Serve the React build folder
 const buildPath = path.join(__dirname, "../frontend/build");
 if (fs.existsSync(buildPath)) {
   app.use(express.static(buildPath));
-  app.get("*", (req, res) => res.sendFile(path.join(buildPath, "index.html")));
 }
 
-// ✅ Default Route for API Testing
-app.get("/", (req, res) => {
-  res.send("Backend is running! Go to /product/:slug for product details.");
-});
-
-// Function to create slugs from product titles
+// ✅ Function to create slugs from product titles
 const createSlug = (title) => {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 };
@@ -27,13 +21,18 @@ const createSlug = (title) => {
 app.get("/product/:slug", async (req, res) => {
   try {
     const productSlug = req.params.slug;
+    
+    // Fetch product data
     const productResponse = await fetch("https://fakestoreapi.com/products");
     if (!productResponse.ok) throw new Error(`Failed to fetch products: ${productResponse.status}`);
     
     const products = await productResponse.json();
     const product = products.find((p) => createSlug(p.title) === productSlug);
+    
+    // If product not found, return 404
     if (!product) return res.status(404).send("Product not found");
 
+    // ✅ Read and modify index.html
     let indexHTML = fs.readFileSync(path.join(buildPath, "index.html"), "utf8");
 
     indexHTML = indexHTML
@@ -50,6 +49,7 @@ app.get("/product/:slug", async (req, res) => {
         <meta property="og:type" content="product" />
       </head>`);
 
+    // ✅ Send the updated HTML to the client
     res.send(indexHTML);
   } catch (error) {
     console.error("Error fetching product:", error);
@@ -59,14 +59,10 @@ app.get("/product/:slug", async (req, res) => {
 
 // ✅ Serve React frontend for all other routes
 app.get("*", (req, res) => {
-  if (!fs.existsSync(buildPath)) {
-    return res.status(404).send("⚠️ React frontend build not found.");
-  }
   res.sendFile(path.join(buildPath, "index.html"));
 });
 
-
 // Start the server
-app.listen(PORT, "0.0.0.0", () => {
+app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
