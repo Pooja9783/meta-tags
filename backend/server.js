@@ -4,34 +4,39 @@ const fs = require("fs");
 const fetch = require("node-fetch");
 
 const app = express();
-app.use(express.static(path.resolve(__dirname, "build")));
+const PORT = process.env.PORT || 5000;
+
+// ✅ Serve the React build folder if it exists
+const buildPath = path.resolve(__dirname, "frontend", "build");
+if (fs.existsSync(buildPath)) {
+  app.use(express.static(buildPath));
+} else {
+  console.warn("⚠️ React build folder not found. Make sure you run 'npm run build' in the frontend.");
+}
+
+// ✅ Default Route for API Testing
+app.get("/", (req, res) => {
+  res.send("Backend is running! Go to /product/:slug for product details.");
+});
 
 // Function to create slugs from product titles
 const createSlug = (title) => {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 };
 
-// Serve pre-rendered HTML with Open Graph Meta Tags
+// ✅ Serve pre-rendered HTML with Open Graph Meta Tags
 app.get("/product/:slug", async (req, res) => {
   try {
     const productSlug = req.params.slug;
-
-    // Fetch all products from FakeStoreAPI
-    const productResponse = await fetch(`https://fakestoreapi.com/products`);
+    const productResponse = await fetch("https://fakestoreapi.com/products");
     if (!productResponse.ok) throw new Error(`Failed to fetch products: ${productResponse.status}`);
-
+    
     const products = await productResponse.json();
-
-    // Find the product by slug
     const product = products.find((p) => createSlug(p.title) === productSlug);
     if (!product) return res.status(404).send("Product not found");
 
-    console.log("Fetched Product:", product);
+    let indexHTML = fs.readFileSync(path.join(buildPath, "index.html"), "utf8");
 
-    // Read and modify the HTML file
-    let indexHTML = fs.readFileSync(path.resolve(__dirname, "build", "index.html"), "utf8");
-
-    // Inject dynamic meta tags
     indexHTML = indexHTML
       .replace("<title>React App</title>", `<title>${product.title}</title>`)
       .replace(
@@ -53,17 +58,12 @@ app.get("/product/:slug", async (req, res) => {
   }
 });
 
-app.get("/", (req, res) => {
-  res.send("Server is running!");
-});
-
-// Serve React frontend for all other routes
+// ✅ Serve React frontend for all other routes
 app.get("*", (req, res) => {
-  res.sendFile(path.resolve(__dirname, "build", "index.html"));
+  res.sendFile(path.join(buildPath, "index.html"));
 });
 
 // Start the server
-const PORT = process.env.PORT || 5000
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });
