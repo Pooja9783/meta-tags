@@ -12,6 +12,10 @@ if (fs.existsSync(buildPath)) {
   app.use(express.static(buildPath));
 }
 
+console.log("Checking buildPath:", buildPath);
+console.log("Does buildPath exist?", fs.existsSync(buildPath));
+
+
 // ✅ Function to create slugs from product titles
 const createSlug = (title) => {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
